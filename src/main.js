@@ -14,11 +14,18 @@ let sphereGeo, materials;
 let planeGeo;
 const objects = []; // objects in the scene
 let marked = []; // placement of red spheres
-let pos = [];
-let input = [];
+let pointer_pos = [];
+let locs = [
+  [75, 25, 75],
+  [-25, 25, 75],
+  [75, 25, -25],
+  [-25, 25, -25],
+];
 let selected;
-init();
+let info = document.getElementById("info");
+let cordinates = document.getElementById("cordinates");
 
+init();
 function init() {
   // set up scene and camera
   camera = new THREE.PerspectiveCamera(
@@ -177,12 +184,6 @@ function init() {
   });
   // onload handler
   window.addEventListener("load", () => {
-    let locs = [
-      [75, 25, 75],
-      [-25, 25, 75],
-      [75, 25, -25],
-      [-25, 25, -25],
-    ];
     for (let i = 0; i < 4; i++) {
       let sphere = new THREE.Mesh(sphereGeo, materials[i]);
       sphere.position.set(locs[i][0], locs[i][1], locs[i][2]);
@@ -190,14 +191,7 @@ function init() {
       scene.add(sphere);
       marked.push(sphere);
       objects.push(sphere);
-      input.push({
-        x: locs[i][0],
-        y: locs[i][1],
-        z: locs[i][2],
-        name: sphere.name,
-      });
     }
-    console.log(input);
   });
 }
 
@@ -222,17 +216,14 @@ function onPointerMove(event) {
     rollOverMesh.position.divideScalar(50).multiplyScalar(50).addScalar(25);
   }
   render();
-  // console log the position of the pointer with respect to the plane
   let x = (rollOverMesh.position.x - 25) / 50;
   let y = -1 * ((rollOverMesh.position.z - 25) / 50);
   let z = 0;
-
-  // round the position to the 3 decimal places
-  x = Math.round(x * 1000) / 1000;
-  y = Math.round(y * 1000) / 1000;
-  z = Math.round(z * 1000) / 1000;
-  pos = [x, y, z];
-  // console.log(pos);
+  x = Math.round(x * 100) / 100;
+  y = Math.round(y * 100) / 100;
+  z = Math.round(z * 100) / 100;
+  pointer_pos = [x, y, z];
+  console.log("Current pointer position: " + pointer_pos);
 }
 
 // when x is pressed
@@ -316,6 +307,18 @@ function onDocumentKeyDown(event) {
         objects.pop();
         render();
       } // remove all objects at once
+      // set all spheres to locs
+      for (let i = 0; i < 4; i++) {
+        marked[i].position.set(locs[i][0], locs[i][1], locs[i][2]);
+      }
+      marked[0].material.opacity = 0.5;
+      marked[1].material.opacity = 0.5;
+      marked[2].material.opacity = 0.5;
+      marked[3].material.opacity = 0.5;
+      selected = undefined;
+      info.innerHTML = "";
+      cordinates.innerHTML = "";
+      console.clear();
       console.log("Scene Reset");
       break;
     // 1
@@ -352,28 +355,43 @@ function onDocumentKeyDown(event) {
       break;
     // space
     case 32:
-      index = marked.findIndex((element) => element.name === selected);
-      marked[index].position.x = pos[0] * 50 + 25;
-      marked[index].position.z = -1 * (pos[1] * 50 - 25);
+      try {
+        index = marked.findIndex((element) => element.name === selected);
+        marked[index].position.x = pointer_pos[0] * 50 + 25;
+        marked[index].position.z = -1 * (pointer_pos[1] * 50 - 25);
+      } catch (err) {
+        console.log("No material selected");
+      }
       break;
     // w
     case 87:
-      index = marked.findIndex((element) => element.name === selected);
-      marked[index].position.y += 5;
+      try {
+        index = marked.findIndex((element) => element.name === selected);
+        marked[index].position.y += 5;
+      } catch (err) {
+        console.log("No material selected");
+      }
       break;
     // s
     case 83:
-      index = marked.findIndex((element) => element.name === selected);
-      marked[index].position.y -= 5;
+      try {
+        index = marked.findIndex((element) => element.name === selected);
+        marked[index].position.y -= 5;
+      } catch (err) {
+        console.log("No material selected");
+      }
       break;
-
+    // a
+    case 65:
+      for (let i = 0; i < 4; i++) {
+        console.log("C" + i + ": ", marked[i].position);
+      }
     default:
       break;
   }
   if (selected) {
-    console.log(selected);
     index = marked.findIndex((element) => element.name === selected);
-    document.getElementById("info").innerHTML = selected + " Selected ";
+    info.innerHTML = selected + " Selected ";
     let x = (marked[index].position.x - 25) / 50;
     let y = -1 * ((marked[index].position.z - 25) / 50);
     let z = (marked[index].position.y - 25) / 50;
@@ -381,8 +399,7 @@ function onDocumentKeyDown(event) {
     x = Math.round(x * 100) / 100;
     y = Math.round(y * 100) / 100;
     z = Math.round(z * 100) / 100;
-    document.getElementById("cordinates").innerHTML =
-      "X: " + x + " Y: " + y + " Z: " + z;
+    cordinates.innerHTML = "X: " + x + " Y: " + y + " Z: " + z;
   }
 }
 
