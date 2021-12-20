@@ -50,7 +50,6 @@ function init() {
   });
   rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
   scene.add(rollOverMesh);
-
   // mats
   sphereGeo = new THREE.SphereGeometry(12.5, 32);
   sphereGeo.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
@@ -98,6 +97,11 @@ function init() {
   const line2 = new THREE.Line(lineGeo2, lineMat2);
   scene.add(line);
   scene.add(line2);
+
+  const lineMat3 = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    linewidth: 5,
+  });
 
   // drawing the plane
   planeGeo = new THREE.PlaneGeometry(50, 50);
@@ -153,9 +157,9 @@ function init() {
 
   // lights
   const ambientLight = new THREE.AmbientLight(0x606060);
-  // const pointLight = new THREE.PointLight(0xffffff, 0.5, 0);
-  // pointLight.position.set(0, -25000, 0);
-  // scene.add(pointLight);
+  const pointLight = new THREE.PointLight(0xffffff, 0.5, 0);
+  pointLight.position.set(0, -25000, 0);
+  scene.add(pointLight);
   scene.add(ambientLight);
   const directionalLight = new THREE.DirectionalLight(0xffffff);
   directionalLight.position.set(1, 0.75, 0.5).normalize();
@@ -167,9 +171,31 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
+  // draw a random tube
+  class CustomSinCurve extends THREE.Curve {
+    constructor(scale = 1) {
+      super();
+
+      this.scale = scale;
+    }
+
+    getPoint(t, optionalTarget = new THREE.Vector3()) {
+      const tx = t * 3 - 1.5;
+      const ty = Math.sin(2 * Math.PI * t);
+      const tz = 0;
+
+      return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale);
+    }
+  }
+  const path = new CustomSinCurve(100);
+  const geom = new THREE.TubeGeometry(path, 100, 2, 8, false);
+  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  const mesh = new THREE.Mesh(geom, material);
+  // scene.add(mesh);
+
   // controls
   document.addEventListener("pointermove", onPointerMove);
-  // document.addEventListener("keydown", onXDown);
+  document.addEventListener("keydown", onXDown);
   document.addEventListener("keydown", onDocumentKeyDown);
   window.addEventListener("resize", onWindowResize);
   window.addEventListener("wheel", (event) => {
@@ -227,78 +253,77 @@ function onPointerMove(event) {
 }
 
 // when x is pressed
-// function onXDown(event) {
-//   // if event is x
-//   if (event.key == "x") {
-//     raycaster.setFromCamera(pointer, camera);
-//     const intersects = raycaster.intersectObjects(objects, false);
-//     if (intersects.length > 0) {
-//       const intersect = intersects[0];
-//       // stop stacking
-//       if (intersect.object === plane) {
-//         const mat = new THREE.Mesh(redSphere, redMatmaterial);
-//         mat.position.copy(intersect.point).add(intersect.face.normal);
-//         mat.position.divideScalar(50).multiplyScalar(50).addScalar(25);
-//         mat.updateMatrix();
-//         plane.geometry.merge(mat.geometry, mat.matrix);
-//         let x = (mat.position.x - 25) / 50;
-//         let y = -1 * ((mat.position.z - 25) / 50);
-//         let z = 0;
-//         marked.push({ x: x, y: y, z: z });
-//         console.log(
-//           "Marked: " +
-//             marked[marked.length - 1].x +
-//             "," +
-//             marked[marked.length - 1].y +
-//             "," +
-//             marked[marked.length - 1].z
-//         );
-//         objects.push(mat);
-//         scene.add(mat);
-//       }
+function onXDown(event) {
+  // if event is x
+  if (event.key == "x") {
+    /* raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(objects, false);
+    if (intersects.length > 0) {
+      const intersect = intersects[0];
+      // stop stacking
+      if (intersect.object === plane) {
+        const mat = new THREE.Mesh(redSphere, redMatmaterial);
+        mat.position.copy(intersect.point).add(intersect.face.normal);
+        mat.position.divideScalar(50).multiplyScalar(50).addScalar(25);
+        mat.updateMatrix();
+        plane.geometry.merge(mat.geometry, mat.matrix);
+        let x = (mat.position.x - 25) / 50;
+        let y = -1 * ((mat.position.z - 25) / 50);
+        let z = 0;
+        marked.push({ x: x, y: y, z: z });
+        console.log(
+          "Marked: " +
+            marked[marked.length - 1].x +
+            "," +
+            marked[marked.length - 1].y +
+            "," +
+            marked[marked.length - 1].z
+        );
+        objects.push(mat);
+        scene.add(mat);
+      } */
 
-//       if (marked.length >= 2) {
-//         let x1 = marked[marked.length - 2].x;
-//         let y1 = marked[marked.length - 2].y;
-//         let x2 = marked[marked.length - 1].x;
-//         let y2 = marked[marked.length - 1].y;
-//         let v1 = new THREE.Vector3(x1 * 50, 0, -1 * (y1 * 50));
-//         let v2 = new THREE.Vector3(x2 * 50, 0, -1 * (y2 * 50));
-//         const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
-//         const lineMaterial = new THREE.LineBasicMaterial({
-//           color: 0x000000,
-//         });
-//         const line = new THREE.Line(lineGeometry, lineMaterial);
-//         line.position.y = 2;
-//         scene.add(line);
-//         objects.push(line);
-//         /* let result = lineMP(
-//           marked[marked.length - 2],
-//           marked[marked.length - 1]
-//         ); */
+    let { x, y, z } = marked[0].position;
+    let v1 = new THREE.Vector3(x * 50, 0, -1 * (z * 50), y * 50);
+    let v2 = new THREE.Vector3(x * 50, -1 * (z * 50), 0);
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: 0x000000,
+    });
+    const line = new THREE.Line(lineGeometry, lineMaterial);
+    line.position.y = 2;
+    scene.add(line);
+    objects.push(line);
+    console.log("Marked: " + x + "," + y + "," + z);
+    /* let result = lineMP(
+          marked[marked.length - 2],
+          marked[marked.length - 1]
+        ); */
 
-//         /* marked.pop();
-//         marked.pop();
-//         for (let i = 0; i < result.length; i++) {
-//           const cube = new THREE.Mesh(cubeGeo, cubeMaterial);
+    /* marked.pop();
+        marked.pop();
+        for (let i = 0; i < result.length; i++) {
+          const cube = new THREE.Mesh(cubeGeo, cubeMaterial);
 
-//           cube.position.set(
-//             result[i].x * 50 + 25,
-//             25,
-//             -1 * (result[i].y * 50 - 25)
-//           );
-//           objects.push(cube);
-//           scene.add(cube);
-//         } */
-//       }
-//       render();
-//     }
-//   }
-// }
+          cube.position.set(
+            result[i].x * 50 + 25,
+            25,
+            -1 * (result[i].y * 50 - 25)
+          );
+          objects.push(cube);
+          scene.add(cube);
+        } */
+
+    render();
+  }
+}
 
 // when backspace is pressed
 function onDocumentKeyDown(event) {
   let index;
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: 0x000000,
+  });
   switch (event.keyCode) {
     // backspace
     case 8:
@@ -368,6 +393,21 @@ function onDocumentKeyDown(event) {
       try {
         index = marked.findIndex((element) => element.name === selected);
         marked[index].position.y += 5;
+        // drop a line from the selected sphere to the plane
+        let v1 = new THREE.Vector3(
+          marked[index].position.x - 25,
+          marked[index].position.y - 25,
+          marked[index].position.z - 25
+        );
+        let v2 = new THREE.Vector3(
+          marked[index].position.x - 25,
+          -12.5,
+          marked[index].position.z - 25
+        );
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
+        const line = new THREE.Line(lineGeometry, lineMaterial);
+        scene.add(line);
+        objects.push(line);
       } catch (err) {
         console.log("No material selected");
       }
@@ -418,6 +458,7 @@ function animate() {
   controls.enableRotate = false;
   controls.panSpeed = 0.1;
   controls.update();
+
   requestAnimationFrame(animate);
   render();
 }
