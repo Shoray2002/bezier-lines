@@ -78,8 +78,8 @@ function init() {
   ];
   // drawing the axes
   const points1 = [];
-  points1.push(new THREE.Vector3(0, 0, 0));
-  points1.push(new THREE.Vector3(1050, 0, 0));
+  points1.push(new THREE.Vector3(0, -2, 0));
+  points1.push(new THREE.Vector3(1050, -2, 0));
   const lineGeo = new THREE.BufferGeometry().setFromPoints(points1);
   const lineMat = new THREE.LineBasicMaterial({
     color: 0x0000ff,
@@ -87,8 +87,8 @@ function init() {
   });
   const line = new THREE.Line(lineGeo, lineMat);
   const points2 = [];
-  points2.push(new THREE.Vector3(0, 0, 0));
-  points2.push(new THREE.Vector3(0, 0, -1000));
+  points2.push(new THREE.Vector3(0, -2, 0));
+  points2.push(new THREE.Vector3(0, -2, -1000));
   const lineGeo2 = new THREE.BufferGeometry().setFromPoints(points2);
   const lineMat2 = new THREE.LineBasicMaterial({
     color: 0xff0000,
@@ -97,11 +97,6 @@ function init() {
   const line2 = new THREE.Line(lineGeo2, lineMat2);
   scene.add(line);
   scene.add(line2);
-
-  const lineMat3 = new THREE.LineBasicMaterial({
-    color: 0xffffff,
-    linewidth: 5,
-  });
 
   // drawing the plane
   planeGeo = new THREE.PlaneGeometry(50, 50);
@@ -197,6 +192,7 @@ function init() {
   document.addEventListener("pointermove", onPointerMove);
   document.addEventListener("keydown", onXDown);
   document.addEventListener("keydown", onDocumentKeyDown);
+  document.addEventListener("keyup", onDocumentKeyUp);
   window.addEventListener("resize", onWindowResize);
   window.addEventListener("wheel", (event) => {
     // zoom in and out
@@ -249,7 +245,7 @@ function onPointerMove(event) {
   y = Math.round(y * 100) / 100;
   z = Math.round(z * 100) / 100;
   pointer_pos = [x, y, z];
-  console.log("Current pointer position: " + pointer_pos);
+  // console.log("Current pointer position: " + pointer_pos);
 }
 
 // when x is pressed
@@ -318,12 +314,22 @@ function onXDown(event) {
   }
 }
 
+function onDocumentKeyUp(event) {
+  if (event.key == "w" || event.key == "s") {
+    let index = marked.findIndex((element) => element.name === selected);
+    for (let i = 0; i < objects.length; i++) {
+      if (objects[i].name === "line" + marked[index].name) {
+        scene.remove(objects[i]);
+        objects.splice(i, 1);
+      }
+    }
+    lineDraw(index);
+  }
+}
+
 // when backspace is pressed
 function onDocumentKeyDown(event) {
   let index;
-  const lineMaterial = new THREE.LineBasicMaterial({
-    color: 0x000000,
-  });
   switch (event.keyCode) {
     // backspace
     case 8:
@@ -393,21 +399,6 @@ function onDocumentKeyDown(event) {
       try {
         index = marked.findIndex((element) => element.name === selected);
         marked[index].position.y += 5;
-        // drop a line from the selected sphere to the plane
-        let v1 = new THREE.Vector3(
-          marked[index].position.x - 25,
-          marked[index].position.y - 25,
-          marked[index].position.z - 25
-        );
-        let v2 = new THREE.Vector3(
-          marked[index].position.x - 25,
-          -12.5,
-          marked[index].position.z - 25
-        );
-        const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
-        const line = new THREE.Line(lineGeometry, lineMaterial);
-        scene.add(line);
-        objects.push(line);
       } catch (err) {
         console.log("No material selected");
       }
@@ -443,6 +434,28 @@ function onDocumentKeyDown(event) {
   }
 }
 
+function lineDraw(index) {
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: 0x000000,
+    linewidth: 5
+  });
+  let v1 = new THREE.Vector3(
+    marked[index].position.x - 25,
+    marked[index].position.y - 25,
+    marked[index].position.z - 25
+  );
+  let v2 = new THREE.Vector3(
+    marked[index].position.x - 25,
+    -2.5,
+    marked[index].position.z - 25
+  );
+  const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
+  const line = new THREE.Line(lineGeometry, lineMaterial);
+  line.name = "line" + marked[index].name;
+  scene.add(line);
+  objects.push(line);
+}
+
 // render the scene
 function render() {
   renderer.render(scene, camera);
@@ -451,7 +464,6 @@ function render() {
 // animate the scene
 function animate() {
   const controls = new OrbitControls(camera, renderer.domElement);
-  // drags.deactivate();
   controls.enableDamping = true;
   controls.dampingFactor = 1;
   controls.enableZoom = false;
