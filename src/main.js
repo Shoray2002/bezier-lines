@@ -1,7 +1,5 @@
-import "../css/style.css"; //import of css styles
 import * as THREE from "https://cdn.skypack.dev/three";
 import { OrbitControls } from "https://cdn.skypack.dev/three/examples/jsm/controls/OrbitControls.js";
-// import of threeJS dependencies using CDN
 import { bezier3 } from "../bezier3.mjs";
 // import of mjs module
 
@@ -42,8 +40,8 @@ function init() {
 
   // roll-over helpers
   const rollOverGeo = new THREE.CircleGeometry(3, 32);
-  rollOverGeo.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-  rollOverGeo.applyMatrix(new THREE.Matrix4().makeTranslation(-25, -26, -25));
+  rollOverGeo.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+  rollOverGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -26, -25));
   rollOverMaterial = new THREE.MeshBasicMaterial({
     color: 0x1ed760,
     opacity: 0.5,
@@ -53,8 +51,8 @@ function init() {
   scene.add(rollOverMesh);
   // mats
   sphereGeo = new THREE.SphereGeometry(12.5, 32);
-  sphereGeo.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-  sphereGeo.applyMatrix(new THREE.Matrix4().makeTranslation(-25, -25, -25));
+  sphereGeo.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+  sphereGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -25, -25));
   materials = [
     new THREE.MeshBasicMaterial({
       color: 0xffff00,
@@ -101,8 +99,8 @@ function init() {
 
   // drawing the plane
   planeGeo = new THREE.PlaneGeometry(50, 50);
-  planeGeo.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-  planeGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, -15, 0));
+  planeGeo.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+  planeGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -15, 0));
   let lightMaterial = new THREE.MeshStandardMaterial({
     color: 0xf68968,
     opacity: 0.9,
@@ -191,7 +189,6 @@ function init() {
 
   // controls
   document.addEventListener("pointermove", onPointerMove);
-  document.addEventListener("keydown", onXDown);
   document.addEventListener("keydown", onDocumentKeyDown);
   document.addEventListener("keyup", onDocumentKeyUp);
   window.addEventListener("resize", onWindowResize);
@@ -205,7 +202,6 @@ function init() {
     camera.updateProjectionMatrix();
     render();
   });
-  // onload handler
   window.addEventListener("load", () => {
     for (let i = 0; i < 4; i++) {
       let sphere = new THREE.Mesh(sphereGeo, materials[i]);
@@ -247,14 +243,6 @@ function onPointerMove(event) {
   z = Math.round(z * 100) / 100;
   pointer_pos = [x, y, z];
   // console.log("Current pointer position: " + pointer_pos);
-}
-
-// when x is pressed
-function onXDown(event) {
-  if (event.key == "x") {
-    console.log("X pressed");
-    render();
-  }
 }
 
 function onDocumentKeyUp(event) {
@@ -354,7 +342,6 @@ function onDocumentKeyDown(event) {
       }
       break;
     // x
-
     case 88:
       for (let i = 0; i < 4; i++) {
         console.log("C" + i + ": ", marked[i].position);
@@ -362,14 +349,13 @@ function onDocumentKeyDown(event) {
       }
       output.push(0.1);
       const way = new THREE.CubicBezierCurve3(...output);
-      // console.log(way);
       const geom = new THREE.TubeGeometry(way, 100, 2, 8, false);
-      const material = new THREE.MeshBasicMaterial({ color: 0x1a96e5 });
+      const material = new THREE.MeshBasicMaterial({
+        color: randomColorinHEX(),
+      });
       const mesh = new THREE.Mesh(geom, material);
-      mesh.applyMatrix(new THREE.Matrix4().makeTranslation(-25, -26, -25));
+      mesh.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -26, -25));
       scene.add(mesh);
-
-      // console.log(output);
       break;
     default:
       break;
@@ -410,6 +396,12 @@ function lineDraw(index) {
   objects.push(line);
 }
 
+function randomColorinHEX() {
+  let r = Math.floor(Math.random() * 256);
+  let g = Math.floor(Math.random() * 256);
+  let b = Math.floor(Math.random() * 256);
+  return "#" + r.toString(16) + g.toString(16) + b.toString(16);
+}
 // render the scene
 function render() {
   renderer.render(scene, camera);
@@ -421,8 +413,9 @@ function animate() {
   controls.enableDamping = true;
   controls.dampingFactor = 1;
   controls.enableZoom = false;
-  controls.enableRotate = false;
+  // controls.enableRotate = false;
   controls.panSpeed = 0.1;
+  // controls.enablePan=false;
   controls.update();
 
   requestAnimationFrame(animate);

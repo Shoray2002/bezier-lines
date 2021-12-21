@@ -5,6 +5,33 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BezierLines</title>
+    <style>
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+      #info {
+        color: black;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        text-align: center;
+        z-index: 100;
+        display: block;
+        font-size: 40px;
+      }
+      #cordinates {
+        color: black;
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        text-align: center;
+        z-index: 100;
+        display: block;
+        font-size: 40px;
+      }
+    </style>
   </head>
   <body>
     <!-- canvas on which the scene is rendered -->
