@@ -12,15 +12,15 @@ let sphereGeo, materials;
 let planeGeo;
 const objects = []; // objects in the scene
 let marked = []; // placement of red spheres
-let pointer_pos = [];
+let pointer_pos = []; // current pointer position
 let locs = [
   [75, 25, 75],
   [-25, 25, 75],
   [75, 25, -25],
   [-25, 25, -25],
-];
-let output = [];
-let selected;
+]; //original locations of the balls
+let output = []; // output of the algorithm
+let selected; // selected ball
 let info = document.getElementById("info");
 let cordinates = document.getElementById("cordinates");
 init();
@@ -385,10 +385,11 @@ function lineDraw(index) {
 }
 // generate a random color
 function randomColorinHEX() {
-  let r = Math.floor(Math.random() * 256);
-  let g = Math.floor(Math.random() * 256);
-  let b = Math.floor(Math.random() * 256);
-  return "#" + r.toString(16) + g.toString(16) + b.toString(16);
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += Math.floor(Math.random() * 16).toString(16);
+  }
+  return color;
 }
 // render the scene
 function render() {
