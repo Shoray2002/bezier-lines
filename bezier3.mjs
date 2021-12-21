@@ -1,26 +1,23 @@
 // function used to generate the points on the line
-// input: {x0, y0}, {x1, y1}
+// input: {c0:Vector3, c1:Vector3, c2:Vector3, c3:Vector3, t:float} 
 // output: array of required points
 
 
 // algorithm
-function bezier3({ x: x0, y: y0 }, { x: x1, y: y1 }) {
-  let result = [];
-  var dx = Math.abs(x1 - x0);
-   var dy = Math.abs(y1 - y0);
-   var sx = (x0 < x1) ? 1 : -1;
-   var sy = (y0 < y1) ? 1 : -1;
-   var err = dx - dy;
+function bezier3({c0:c0,c1:c1,c2:c2,c3:c3,t:t}) {
+// draw a bezier from c0 to c3
+// c0, c1, c2, c3 are the control points
+// t is the step size
+// return an array of points
+  let points = [];
+  let n = Math.floor(1/t);
+  for (let i = 0; i <= n; i++) {
+    let x = Math.pow((1-t),3)*c0.x + 3*t*Math.pow((1-t),2)*c1.x + 3*Math.pow(t,2)*(1-t)*c2.x + Math.pow(t,3)*c3.x;
+    let y = Math.pow((1-t),3)*c0.y + 3*t*Math.pow((1-t),2)*c1.y + 3*Math.pow(t,2)*(1-t)*c2.y + Math.pow(t,3)*c3.y;
+    let z = Math.pow((1-t),3)*c0.z + 3*t*Math.pow((1-t),2)*c1.z + 3*Math.pow(t,2)*(1-t)*c2.z + Math.pow(t,3)*c3.z;
+    points.push(new Vector3(x, y, z));
+  }
+  return points;
 
-   while(true) {
-      result.push({ x: x0, y: y0 });
-
-      if ((x0 === x1) && (y0 === y1)) break;
-      var e2 = 2*err;
-      if (e2 > -dy) { err -= dy; x0  += sx; }
-      if (e2 < dx) { err += dx; y0  += sy; }
-   }
-  // console.log(result);
-  return result;
 }
-export { bezier3 as lineMP };
+export { bezier3 };

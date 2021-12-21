@@ -2,7 +2,7 @@ import "../css/style.css"; //import of css styles
 import * as THREE from "https://cdn.skypack.dev/three";
 import { OrbitControls } from "https://cdn.skypack.dev/three/examples/jsm/controls/OrbitControls.js";
 // import of threeJS dependencies using CDN
-import { lineMP } from "../bezier3.mjs";
+import { bezier3 } from "../bezier3.mjs";
 // import of mjs module
 
 // variables
@@ -21,6 +21,7 @@ let locs = [
   [75, 25, -25],
   [-25, 25, -25],
 ];
+let output = [];
 let selected;
 let info = document.getElementById("info");
 let cordinates = document.getElementById("cordinates");
@@ -170,7 +171,6 @@ function init() {
   class CustomSinCurve extends THREE.Curve {
     constructor(scale = 1) {
       super();
-
       this.scale = scale;
     }
 
@@ -183,6 +183,7 @@ function init() {
     }
   }
   const path = new CustomSinCurve(100);
+  console.log("Path", path);
   const geom = new THREE.TubeGeometry(path, 100, 2, 8, false);
   const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
   const mesh = new THREE.Mesh(geom, material);
@@ -250,72 +251,14 @@ function onPointerMove(event) {
 
 // when x is pressed
 function onXDown(event) {
-  // if event is x
   if (event.key == "x") {
-    /* raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(objects, false);
-    if (intersects.length > 0) {
-      const intersect = intersects[0];
-      // stop stacking
-      if (intersect.object === plane) {
-        const mat = new THREE.Mesh(redSphere, redMatmaterial);
-        mat.position.copy(intersect.point).add(intersect.face.normal);
-        mat.position.divideScalar(50).multiplyScalar(50).addScalar(25);
-        mat.updateMatrix();
-        plane.geometry.merge(mat.geometry, mat.matrix);
-        let x = (mat.position.x - 25) / 50;
-        let y = -1 * ((mat.position.z - 25) / 50);
-        let z = 0;
-        marked.push({ x: x, y: y, z: z });
-        console.log(
-          "Marked: " +
-            marked[marked.length - 1].x +
-            "," +
-            marked[marked.length - 1].y +
-            "," +
-            marked[marked.length - 1].z
-        );
-        objects.push(mat);
-        scene.add(mat);
-      } */
-
-    let { x, y, z } = marked[0].position;
-    let v1 = new THREE.Vector3(x * 50, 0, -1 * (z * 50), y * 50);
-    let v2 = new THREE.Vector3(x * 50, -1 * (z * 50), 0);
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints([v1, v2]);
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x000000,
-    });
-    const line = new THREE.Line(lineGeometry, lineMaterial);
-    line.position.y = 2;
-    scene.add(line);
-    objects.push(line);
-    console.log("Marked: " + x + "," + y + "," + z);
-    /* let result = lineMP(
-          marked[marked.length - 2],
-          marked[marked.length - 1]
-        ); */
-
-    /* marked.pop();
-        marked.pop();
-        for (let i = 0; i < result.length; i++) {
-          const cube = new THREE.Mesh(cubeGeo, cubeMaterial);
-
-          cube.position.set(
-            result[i].x * 50 + 25,
-            25,
-            -1 * (result[i].y * 50 - 25)
-          );
-          objects.push(cube);
-          scene.add(cube);
-        } */
-
+    console.log("X pressed");
     render();
   }
 }
 
 function onDocumentKeyUp(event) {
-  if (event.key == "w" || event.key == "s") {
+  if (event.key == "w" || event.key == "s" || event.key == " ") {
     let index = marked.findIndex((element) => element.name === selected);
     for (let i = 0; i < objects.length; i++) {
       if (objects[i].name === "line" + marked[index].name) {
@@ -327,7 +270,6 @@ function onDocumentKeyUp(event) {
   }
 }
 
-// when backspace is pressed
 function onDocumentKeyDown(event) {
   let index;
   switch (event.keyCode) {
@@ -337,8 +279,7 @@ function onDocumentKeyDown(event) {
         scene.remove(objects[objects.length - 1]);
         objects.pop();
         render();
-      } // remove all objects at once
-      // set all spheres to locs
+      }
       for (let i = 0; i < 4; i++) {
         marked[i].position.set(locs[i][0], locs[i][1], locs[i][2]);
       }
@@ -412,11 +353,24 @@ function onDocumentKeyDown(event) {
         console.log("No material selected");
       }
       break;
-    // a
-    case 65:
+    // x
+
+    case 88:
       for (let i = 0; i < 4; i++) {
         console.log("C" + i + ": ", marked[i].position);
+        output.push(marked[i].position);
       }
+      output.push(0.1);
+      const way = new THREE.CubicBezierCurve3(...output);
+      // console.log(way);
+      const geom = new THREE.TubeGeometry(way, 100, 2, 8, false);
+      const material = new THREE.MeshBasicMaterial({ color: 0x1a96e5 });
+      const mesh = new THREE.Mesh(geom, material);
+      mesh.applyMatrix(new THREE.Matrix4().makeTranslation(-25, -26, -25));
+      scene.add(mesh);
+
+      // console.log(output);
+      break;
     default:
       break;
   }
@@ -437,7 +391,7 @@ function onDocumentKeyDown(event) {
 function lineDraw(index) {
   const lineMaterial = new THREE.LineBasicMaterial({
     color: 0x000000,
-    linewidth: 5
+    linewidth: 5,
   });
   let v1 = new THREE.Vector3(
     marked[index].position.x - 25,
