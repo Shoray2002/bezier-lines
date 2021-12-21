@@ -165,27 +165,6 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // draw a random tube
-  class CustomSinCurve extends THREE.Curve {
-    constructor(scale = 1) {
-      super();
-      this.scale = scale;
-    }
-
-    getPoint(t, optionalTarget = new THREE.Vector3()) {
-      const tx = t * 3 - 1.5;
-      const ty = Math.sin(2 * Math.PI * t);
-      const tz = 0;
-
-      return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale);
-    }
-  }
-  const path = new CustomSinCurve(100);
-  console.log("Path", path);
-  const geom = new THREE.TubeGeometry(path, 100, 2, 8, false);
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const mesh = new THREE.Mesh(geom, material);
-  // scene.add(mesh);
 
   // controls
   document.addEventListener("pointermove", onPointerMove);
@@ -344,12 +323,13 @@ function onDocumentKeyDown(event) {
     // x
     case 88:
       for (let i = 0; i < 4; i++) {
-        console.log("C" + i + ": ", marked[i].position);
-        output.push(marked[i].position);
+        output["c"+i]=marked[i].position;
       }
-      output.push(0.1);
+      output["t"]=0.1;
+      console.log({...output});
+      bezier3({...output});
       const way = new THREE.CubicBezierCurve3(...output);
-      const geom = new THREE.TubeGeometry(way, 100, 2, 8, false);
+      const geom = new THREE.TubeGeometry(way, 100, 5, 32, false);
       const material = new THREE.MeshBasicMaterial({
         color: randomColorinHEX(),
       });
@@ -366,7 +346,7 @@ function onDocumentKeyDown(event) {
     let x = (marked[index].position.x - 25) / 50;
     let y = -1 * ((marked[index].position.z - 25) / 50);
     let z = (marked[index].position.y - 25) / 50;
-    // round to 3 decimal places
+    // round to 2 decimal places
     x = Math.round(x * 100) / 100;
     y = Math.round(y * 100) / 100;
     z = Math.round(z * 100) / 100;
@@ -374,6 +354,7 @@ function onDocumentKeyDown(event) {
   }
 }
 
+// draw the perpendicular line
 function lineDraw(index) {
   const lineMaterial = new THREE.LineBasicMaterial({
     color: 0x000000,
@@ -395,7 +376,7 @@ function lineDraw(index) {
   scene.add(line);
   objects.push(line);
 }
-
+// generate a random color
 function randomColorinHEX() {
   let r = Math.floor(Math.random() * 256);
   let g = Math.floor(Math.random() * 256);
@@ -413,7 +394,7 @@ function animate() {
   controls.enableDamping = true;
   controls.dampingFactor = 1;
   controls.enableZoom = false;
-  // controls.enableRotate = false;
+  controls.enableRotate = false;
   controls.panSpeed = 0.1;
   // controls.enablePan=false;
   controls.update();
