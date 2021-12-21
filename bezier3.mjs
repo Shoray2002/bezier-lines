@@ -1,6 +1,6 @@
-// function used to generate the points on the line
+// function used to generate the point of the curve at a given t and the control points
 // input: {c0:Vector3, c1:Vector3, c2:Vector3, c3:Vector3, t:float}
-// output: array of required points
+// output: vector3 of the required point
 import * as THREE from "https://cdn.skypack.dev/three";
 
 function bezier3({ c0: c0, c1: c1, c2: c2, c3: c3, t: t }) {

@@ -23,7 +23,6 @@ let output = [];
 let selected;
 let info = document.getElementById("info");
 let cordinates = document.getElementById("cordinates");
-
 init();
 function init() {
   // set up scene and camera
@@ -44,12 +43,11 @@ function init() {
   rollOverGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -26, -25));
   rollOverMaterial = new THREE.MeshBasicMaterial({
     color: 0x1ed760,
-    opacity: 0.5,
-    transparent: true,
   });
   rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
   scene.add(rollOverMesh);
-  // mats
+
+  // sphere
   sphereGeo = new THREE.SphereGeometry(12.5, 32);
   sphereGeo.applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
   sphereGeo.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -25, -25));
@@ -75,6 +73,7 @@ function init() {
       transparent: true,
     }),
   ];
+
   // drawing the axes
   const points1 = [];
   points1.push(new THREE.Vector3(0, -2, 0));
@@ -181,6 +180,7 @@ function init() {
     render();
   });
   window.addEventListener("load", () => {
+    // place the spheres on the board after the page is loaded
     for (let i = 0; i < 4; i++) {
       let sphere = new THREE.Mesh(sphereGeo, materials[i]);
       sphere.position.set(locs[i][0], locs[i][1], locs[i][2]);
@@ -225,17 +225,20 @@ function onPointerMove(event) {
 
 function onDocumentKeyUp(event) {
   if (event.key == "w" || event.key == "s" || event.key == " ") {
-    let index = marked.findIndex((element) => element.name === selected);
-    for (let i = 0; i < objects.length; i++) {
-      if (objects[i].name === "line" + marked[index].name) {
-        scene.remove(objects[i]);
-        objects.splice(i, 1);
+    try {
+      let index = marked.findIndex((element) => element.name === selected);
+      for (let i = 0; i < objects.length; i++) {
+        if (objects[i].name === "line" + marked[index].name) {
+          scene.remove(objects[i]);
+          objects.splice(i, 1);
+        }
       }
+      lineDraw(index);
+    } catch (err) {
+      ("No Balls Selected");
     }
-    lineDraw(index);
   }
 }
-
 function onDocumentKeyDown(event) {
   let index;
   switch (event.keyCode) {
@@ -298,7 +301,7 @@ function onDocumentKeyDown(event) {
         marked[index].position.x = pointer_pos[0] * 50 + 25;
         marked[index].position.z = -1 * (pointer_pos[1] * 50 - 25);
       } catch (err) {
-        console.log("No material selected");
+        console.log("No Balls Selected");
       }
       break;
     // w
@@ -307,7 +310,7 @@ function onDocumentKeyDown(event) {
         index = marked.findIndex((element) => element.name === selected);
         marked[index].position.y += 5;
       } catch (err) {
-        console.log("No material selected");
+        console.log("No Balls Selected");
       }
       break;
     // s
@@ -316,33 +319,30 @@ function onDocumentKeyDown(event) {
         index = marked.findIndex((element) => element.name === selected);
         marked[index].position.y -= 5;
       } catch (err) {
-        console.log("No material selected");
+        console.log("No Balls Selected");
       }
       break;
     // x
     case 88:
-      let obj=[];
+      let obj = [];
       for (let i = 0; i < 4; i++) {
         output["c" + i] = marked[i].position;
-        // output.push(marked[i].position);
       }
       output["t"] = 0;
-      // output.push(0.1);
       while (output["t"] <= 1) {
-        output["t"] += 0.01;
+        output["t"] += 0.001;
         obj.push(bezier3({ ...output }));
       }
-      console.log(obj);
-      // console.log({ ...output });
-      // const way = new THREE.CubicBezierCurve3(...output);
       const way = new THREE.CatmullRomCurve3(obj);
-      const geom = new THREE.TubeGeometry(way, 100, 5, 32, false);
+      const geom = new THREE.TubeGeometry(way, 180, 5, 180, false);
       const material = new THREE.MeshBasicMaterial({
         color: randomColorinHEX(),
+        side: THREE.DoubleSide,
       });
       const mesh = new THREE.Mesh(geom, material);
       mesh.applyMatrix4(new THREE.Matrix4().makeTranslation(-25, -26, -25));
       scene.add(mesh);
+      objects.push(mesh);
       break;
     default:
       break;
