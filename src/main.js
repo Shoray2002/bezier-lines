@@ -321,18 +321,21 @@ function onDocumentKeyDown(event) {
       break;
     // x
     case 88:
+      let obj=[];
       for (let i = 0; i < 4; i++) {
         output["c" + i] = marked[i].position;
         // output.push(marked[i].position);
       }
-      output["t"] = 0.1;
+      output["t"] = 0;
       // output.push(0.1);
-      while(output["t"]<=1){
+      while (output["t"] <= 1) {
         output["t"] += 0.01;
-        bezier3({ ...output })
+        obj.push(bezier3({ ...output }));
       }
-      console.log({...output});
-      const way = new THREE.CubicBezierCurve3(...output);
+      console.log(obj);
+      // console.log({ ...output });
+      // const way = new THREE.CubicBezierCurve3(...output);
+      const way = new THREE.CatmullRomCurve3(obj);
       const geom = new THREE.TubeGeometry(way, 100, 5, 32, false);
       const material = new THREE.MeshBasicMaterial({
         color: randomColorinHEX(),
