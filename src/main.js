@@ -220,7 +220,7 @@ function onPointerMove(event) {
   y = Math.round(y * 100) / 100;
   z = Math.round(z * 100) / 100;
   pointer_pos = [x, y, z];
-  // console.log("Current pointer position: " + pointer_pos);
+  console.log("Current pointer position: " + pointer_pos);
 }
 
 function onDocumentKeyUp(event) {
